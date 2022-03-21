@@ -18,7 +18,7 @@ const DogSchema = new mongoose.Schema({
 	age: {
 		type: Number,
 		min: 0,
-		default: 0,
+		default: 1,
 	},
 
 	createdDate: {
@@ -28,6 +28,6 @@ const DogSchema = new mongoose.Schema({
 
 });
 
-DogModel = mongoose.model('Cat', DogSchema);
+DogModel = mongoose.model('Dog', DogSchema);
 
 module.exports = DogModel;

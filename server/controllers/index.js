@@ -2,7 +2,7 @@
 const models = require('../models');
 
 // get the Cat model
-const { Cat } = models;
+const { Cat, Dog } = models;
 
 // default fake data so that we have something to work with until we make a real Cat
 const defaultData = {
@@ -91,13 +91,43 @@ const saveDog = async (req, res) => {
     return res.status(400).json({ error: 'Name is required for the dog!' });
   }
 
-  const DogData = {
-    name: `${req.body.name}`,
-    breed: `${req.body.breed}`,
-    age: `${req.body.age}`,
-    //Should include date here (?)
+  const attributes = { breed, age, createdDate };
+  const nonDefault = { name };
+
+  Object.keys(attributes).forEach(element => {
+    if(req.body[element]) {
+      //nonDefault
+    }
+  });
+
+
+  const dogData;
+  Object.values(attributes).forEach(value => {
+
+  });
+  
+
+
+
+  const newDog = new Dog(dogData);
+
+  try {
+    await newDog.save();
+  
+    return res.json({
+      name: newDog.name,
+      breed: newDog.breed,
+      age: newDog.age,
+      createdDate: newDog.createdDate,
+    });
+  
+  } catch(err) {
+    console.log(err);
+    return res.status(500).json({ error: 'failed to create dog' });
   }
 }
+
+
 
 // Function to create a new cat in the database
 const setName = async (req, res) => {
