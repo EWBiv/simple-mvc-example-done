@@ -86,6 +86,19 @@ const hostPage3 = (req, res) => {
 // Get name will return the name of the last added cat.
 const getName = (req, res) => res.json({ name: lastAdded.name });
 
+const saveDog = async (req, res) => {
+  if (!req.body.name) {
+    return res.status(400).json({ error: 'Name is required for the dog!' });
+  }
+
+  const DogData = {
+    name: `${req.body.name}`,
+    breed: `${req.body.breed}`,
+    age: `${req.body.age}`,
+    //Should include date here (?)
+  }
+}
+
 // Function to create a new cat in the database
 const setName = async (req, res) => {
   /* If we look at views/page2.handlebars, the form has inputs for a firstname, lastname
@@ -243,6 +256,7 @@ module.exports = {
   page3: hostPage3,
   getName,
   setName,
+  saveDog,
   updateLast,
   searchName,
   notFound,

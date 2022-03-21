@@ -30,6 +30,8 @@ const router = (app) => {
   // For example, a form submission to www.webpage.com/setName
   app.post('/setName', controllers.setName);
 
+  app.post('/saveDog', controllers.saveDog);
+
   // When someone POSTS to /updateLast, call controllers.updateLast
   app.post('/updateLast', controllers.updateLast);
 };
