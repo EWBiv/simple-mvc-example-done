@@ -83,49 +83,100 @@ const hostPage3 = (req, res) => {
   res.render('page3');
 };
 
+const hostPage4 = async (req, res) => {
+  try {
+    const returnedDogs = await Dog.find({}).lean().exec();
+    return res.render('page4', { dogs: returnedDogs });
+  } catch (err) {
+    console.log(err);
+    return res.status(500).json({ error: 'failed to find dogs' });
+  }
+};
+
 // Get name will return the name of the last added cat.
 const getName = (req, res) => res.json({ name: lastAdded.name });
 
 const saveDog = async (req, res) => {
-  if (!req.body.name) {
-    return res.status(400).json({ error: 'Name is required for the dog!' });
+  if (!req.body.name || !req.body.breed || !req.body.age) {
+    return res.status(400).json({ error: 'Name, breed & age are required for the dog creation!' });
   }
 
-  const attributes = {
+  const dogData = {
+    name: req.body.name,
     breed: req.body.breed,
     age: req.body.age,
-    createdDate: req.body.createdDate,
   };
 
-  const nonDefault = { name: req.body.name };
+  // Had a cool setup before I saw #5 outline every portion was required :(
+  // Kept it below in case I want to use it in the future
+
+  // const attributes = {
+  //   breed: req.body.breed,
+  //   age: req.body.age,
+  //   createdDate: req.body.createdDate,
+  // };
+
+  // const nonDefault = { name: req.body.name };
 
   // 'Non-default' is each attribute that will not be defaulted
-  // if field blank (and not required), it will not be passed
-  Object.keys(attributes).forEach((element) => {
-    if (attributes[element]) {
-      nonDefault[element] = attributes[element];
-    }
-  });
+  // if field blank (and not required), it will not be passed in
+  // Object.keys(attributes).forEach((element) => {
+  //   if (attributes[element]) {
+  //     nonDefault[element] = attributes[element];
+  //   }
+  // });
 
-  const dogData = {};
-  Object.keys(nonDefault).forEach((element) => {
-    dogData[element] = nonDefault[element];
-  });
+  // const dogData = {};
+  // Object.keys(nonDefault).forEach((element) => {
+  //   dogData[element] = nonDefault[element];
+  // });
 
   const newDog = new Dog(dogData);
 
   try {
     await newDog.save();
 
-    return res.json({
-      name: newDog.name,
-      breed: newDog.breed,
-      age: newDog.age,
-      createdDate: newDog.createdDate,
-    });
+    return res.json(newDog);
   } catch (err) {
     console.log(err);
     return res.status(500).json({ error: 'failed to create dog' });
+  }
+};
+
+const dogFindAndUpdate = async (req, res) => {
+  // Need a name to search..
+  if (!req.query.name) {
+    return res.status(400).json({ error: 'Name is required to perform a search' });
+  }
+
+  try {
+    // https://mongoosejs.com/docs/api/model.html#model_Model.findOneAndUpdate
+    // Used for figuring out the method and it's potential parameters
+
+    // https://stackoverflow.com/questions/41444213/how-do-i-increment-a-number-value-in-mongoose
+    // ^^ Used for $inc to increase value by 1 of property (increment)
+
+    const query = { name: req.query.name }; // The 'query' we are searching the database for
+
+    // Options object
+    const options = {
+      returnDocument: 'after', // Returns document after update
+      lean: true, // Instead of lean(), just have it return it lean already
+    }; // Not 100% sure if the lean option is working here..
+
+    const updateDog = await Dog.findOneAndUpdate(query, { $inc: { age: 1 } }, options).exec();
+
+    // If we do not find something that matches our search, doc will be empty.
+    if (!updateDog) {
+      return res.json({ error: 'No dog found with such a name!' });
+    }
+
+    // Otherwise, we got a result and will send it back to the user.
+    return res.json(updateDog);
+  } catch (err) {
+    // If there is an error, log it and send the user an error message.
+    console.log(err);
+    return res.status(500).json({ error: 'Something went wrong' });
   }
 };
 
@@ -209,14 +260,18 @@ const searchName = async (req, res) => {
   */
   try {
     /* Just like Cat.find() in hostPage1() above, Mongoose models also have a .findOne()
-       that will find a single document in the database that matches the search parameters.
-       This function is faster, as it will stop searching after it finds one document that
-       matches the parameters. The downside is you cannot get multiple responses with it.
+      that will find a single document in the database that matches the search parameters.
+      This function is faster, as it will stop searching after it finds one document that
+      matches the parameters. The downside is you cannot get multiple responses with it.
 
-       One of three things will occur when trying to findOne in the database.
-        1) An error will be thrown, which will stop execution of the try block and move to the catch block.
-        2) Everything works, but the name was not found in the database returning an empty doc object.
-        3) Everything works, and an object matching the search is found.
+      One of three things will occur when trying to findOne in the database.
+      1) An error will be thrown, which will stop execution of the try block
+      and move to the catch block.
+
+      2) Everything works, but the name was not found in the
+      database returning an empty doc object.
+
+      3) Everything works, and an object matching the search is found.
     */
     const doc = await Cat.findOne({ name: req.query.name }).exec();
 
@@ -284,9 +339,11 @@ module.exports = {
   page1: hostPage1,
   page2: hostPage2,
   page3: hostPage3,
+  page4: hostPage4,
   getName,
   setName,
   saveDog,
+  dogFindAndUpdate,
   updateLast,
   searchName,
   notFound,

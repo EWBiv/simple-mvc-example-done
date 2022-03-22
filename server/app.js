@@ -11,7 +11,9 @@ const favicon = require('serve-favicon');
 const bodyParser = require('body-parser');
 // Mongoose is one of the most popular MongoDB libraries for node
 const mongoose = require('mongoose');
-// express handlebars is an express plugin for handlebars templating
+
+const hb = require('handlebars');
+// express handlebars is an exp plugin for hb templating
 const expressHandlebars = require('express-handlebars');
 
 // import our router.js file to handle the MVC routes
@@ -69,6 +71,18 @@ app.engine('handlebars', expressHandlebars.engine({
   defaultLayout: '',
 }));
 app.set('view engine', 'handlebars');
+
+// Create Handlebars helper
+// https://stackoverflow.com/questions/34252817/handlebarsjs-check-if-a-string-is-equal-to-a-value
+
+// https://handlebarsjs.com/guide/block-helpers.html#conditionals - documentation regarding what .fn and .inverse do. .fn acts like an if and .inverse acts like an else
+hb.registerHelper('notEqual', (argument1, argument2, options) => {
+  if (argument1 !== argument2) {
+    return options.fn(this);
+  }
+
+  return options.inverse(this);
+});
 
 // set the views path to the template directory
 // (not shown in this example but needed for express to work)
